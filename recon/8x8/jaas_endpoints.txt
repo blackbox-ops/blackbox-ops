@@ -1,0 +1,67 @@
+# jaas.8x8.vc endpoints captured during recon
+# Account A cid: 9e3cb0a654024417bbaea7c797ed8062  user: auth0|6a096f705a67ac86f5447b96  (attacker)
+# Account B cid: 13dc8996cd274aab896fab41a75e97af  user: auth0|6a09717b9ec6a906eede46ad  (victim)
+
+# === Payments / Billing (high impact if cross-tenant) ===
+GET  /meet-external/payments-service/v1/customers/{cid}
+GET  /meet-external/payments-service/v1/customers/{cid}/invoices
+GET  /meet-external/payments-service/v1/customers/{cid}/invoices/upcoming
+GET  /meet-external/payments-service/v1/customers/{cid}/activity
+GET  /meet-external/payments-service/v1/customers/{cid}/cards
+GET  /meet-external/payments-service/v1/customers/{cid}/coupons
+GET  /meet-external/payments-service/v1/customers/{cid}/subscription_schedules
+GET  /meet-external/payments-service/v2/customers/{cid}/subscriptions?statusType=VALID
+GET  /meet-external/payments-service/v1/products?context=VPAAS
+
+# === Activity / History ===
+GET  /meet-external/activity-history/v1/customers/{cid}/records
+GET  /meet-external/jaas-recordings/v1/recordings/tenant/vpaas-magic-cookie-{cid}
+
+# === Tenant / Customer Config ===
+GET  /meet-external/customer-configs/v1/customers/{cid}/config
+GET  /meet-external/customer-configs/v1/customers/{cid}/users/{auth0_uid}/config
+GET  /meet-external/customer-configs/v1/customers/config/options
+GET  /meet-external/customer-configs/v1/customers/quicksight   # <-- HARDCODED RESERVED TENANT
+GET  /meet-external/permissions-manager/v1/permissions/customer
+
+# === JWT / Tokens (alg confusion targets) ===
+GET  /meet-external/token-mapping/v1/jaas-system-token/token
+GET  /meet-external/token-mapping/v1/jaas-public/token
+GET  /meet-external/jitsi-versioning/v1/customers/{cid}/release?environment=prod-8x8
+GET  /meet-external/jitsi-versioning/v1/customers/{cid}/pin?environment=prod-8x8
+
+# === Key uploader (CRITICAL if cross-tenant write works) ===
+GET  /meet-external/key-uploader/v1/tenants/vpaas-magic-cookie-{cid}/key-metadata
+GET  /meet-external/key-uploader/v1/tenants/vpaas-magic-cookie-{cid}/publickey
+# probe: PUT/POST same path with attacker public key on victim tenant
+
+# === Webhook targets (SSRF magnet) ===
+GET  /meet-external/target-manager/v1/targets
+GET  /meet-external/target-manager/v1/targets/eventTypes
+# probe: POST {url, eventTypes} with collaborator, 169.254.169.254, 127.0.0.1
+
+# === Webhook metrics ===
+GET  /meet-external/webhook-customer-metrics/v1/metrics/customers/{cid}/attempts
+GET  /meet-external/webhook-customer-metrics/v1/metrics/customers/{cid}/duration
+
+# === Branding (SVG XSS + path traversal) ===
+GET  /meet-external/branding/v1/presigned-url/tenant
+GET  /meet-external/branding/v2/jaas/hooks
+GET  /meet-external/branding/v2/customers
+GET  /meet-external/branding/public/v2/tenants/vpaas-magic-cookie-{cid}
+
+# === Team / Invites ===
+GET  /meet-platform/virtualmeeting/v1/standalone/team/members?context=VPAAS
+POST /meet-platform/virtualmeeting/v1/standalone/team/members/invite?context=VPAAS
+GET  /meet-platform/virtualmeeting/v1/standalone/team/members/invite/{token}?context=VPAAS
+GET  /meet-platform/virtualmeeting/v1/customers/{cid}/profile/extended
+
+# === Auth flows ===
+POST /meet-platform/virtualmeeting/v1/jaas/account/password-change
+POST /api-vo.jitsi.net/meet-platform/virtualmeeting/v1/standalone/pin/generate
+POST /api-vo.jitsi.net/meet-platform/virtualmeeting/v1/standalone/pin/verify?pin={6digit}
+
+# === Other ===
+GET  /meet-external/spot-roomkeeper/v1/customer/settings
+GET  /meet-external/view-resources/v1/progress/WEB/customers/{cid}
+GET  /meet-external/progress-flags/v1/jaas-progress/login
